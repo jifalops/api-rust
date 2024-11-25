@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  rust-axum:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    ports:
+      - "3000:3000"
+    command: sleep infinity
+    volumes:
+      - ..:/rust-axum:cached
+    environment:
+      TZ: ${TZ} # Timezone
+      GITHUB_TOKEN: ${GITHUB_TOKEN} # Github CLI
+      POSTGRES_URI: postgresql://developer:developer@postgres:5432/developer
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: developer
+      POSTGRES_PASSWORD: developer
+      POSTGRES_DB: developer
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:

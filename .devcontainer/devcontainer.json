@@ -1,0 +1,26 @@
+{
+  "name": "Rust Axum",
+  "dockerComposeFile": "./docker-compose.yml",
+  "service": "rust-axum",
+  "remoteUser": "developer",
+  "workspaceFolder": "/rust-axum",
+  "postCreateCommand": ".devcontainer/post-create.sh",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "lldb.launch.initCommands": [
+          // Squelches warning when debugging in the container.
+          "settings set target.disable-aslr false"
+        ],
+        "dev.containers.dockerCredentialHelper": false
+      },
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "fill-labs.dependi",
+        "EthanSK.restore-terminals",
+        "redhat.vscode-yaml"
+      ]
+    }
+  }
+}
