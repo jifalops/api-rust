@@ -1,0 +1,50 @@
+{
+  // Avoids popup when opening a file that's not linked back to lib.rs
+  "rust-analyzer.showUnlinkedFileNotification": false,
+  "restoreTerminals.terminals": [
+    {
+      "splitTerminals": [
+        {
+          "name": "dev",
+          "commands": [
+            "./scripts/test-unit.sh && ./scripts/run.sh"
+          ]
+        },
+        {
+          "name": "preview AWS SAM",
+          "commands": [
+            "sleep 5; ./scripts/test-e2e.sh && ./scripts/preview_sam.sh"
+          ]
+        }
+      ]
+    },
+    {
+      "splitTerminals": [
+        {
+          "name": "bash",
+          "commands": []
+        }
+      ]
+    }
+  ],
+  // CloudFormation intrinsic functions.
+  "yaml.customTags": [
+    "!And",
+    "!If",
+    "!Not",
+    "!Equals",
+    "!Or",
+    "!FindInMap sequence",
+    "!Base64",
+    "!Cidr",
+    "!Ref",
+    "!Sub",
+    "!GetAtt",
+    "!GetAZs",
+    "!ImportValue",
+    "!Select",
+    "!Select sequence",
+    "!Split",
+    "!Join sequence"
+  ],
+}
