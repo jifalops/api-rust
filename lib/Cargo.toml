@@ -9,3 +9,5 @@ edition = "2021"
 api-rust-macros = { version = "*", path = "../macros" }
 axum = { version = "0.7.9", features = ["macros"] }
 tokio = { version = "1.41.1", features = ["full"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }

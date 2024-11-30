@@ -13,6 +13,9 @@ services:
     environment:
       TZ: ${TZ} # Timezone
       GITHUB_TOKEN: ${GITHUB_TOKEN} # Github CLI
+      # Parsed by `tracing_subscriber`.
+      # See https://docs.rs/tracing-subscriber/latest/tracing_subscriber/filter/struct.EnvFilter.html#example-syntax
+      RUST_LOG: debug
       POSTGRES_URI: postgresql://developer:developer@postgres:5432/developer
 
   postgres:
