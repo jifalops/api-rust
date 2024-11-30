@@ -2,7 +2,6 @@ use axum::async_trait;
 
 use super::AuthService;
 
-#[derive(Clone)]
 pub struct AuthServiceJwt;
 
 #[async_trait]

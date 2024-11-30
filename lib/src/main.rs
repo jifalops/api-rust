@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use api_rust::{
-    app::{App, Services},
+    app::{App, NewApp},
     auth::{AuthService, AuthServiceJwt},
 };
 use axum::{extract::State, response::Html, routing::get, Json, Router};
@@ -15,18 +15,17 @@ async fn main() {
         .with(EnvFilter::from_default_env())
         .init();
 
-    let app = App::new(AuthServiceJwt);
+    let app = NewApp {
+        auth: AuthServiceJwt,
+    };
 
-    // build our application with a route
     let router = Router::new()
         .route("/", get(handler))
         .route("/auth", get(auth))
         .with_state(Arc::new(app));
 
-    // run it
     let addr = std::net::SocketAddr::from(([0, 0, 0, 0], 3000));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    println!("listening on {}", listener.local_addr().unwrap());
     axum::serve(listener, router).await.unwrap();
 }
 
@@ -34,7 +33,7 @@ async fn handler() -> Html<&'static str> {
     Html("<h1>Hello, World!</h1>")
 }
 
-pub async fn auth<S: Services>(State(app): State<Arc<S>>) -> Json<&'static str> {
+pub async fn auth<A: App>(State(app): State<Arc<A>>) -> Json<&'static str> {
     match app.auth().authenticate("valid").await {
         Ok(()) => Json("authenticated"),
         Err(()) => Json("unauthenticated"),

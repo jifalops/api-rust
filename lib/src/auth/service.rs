@@ -1,8 +1,6 @@
 use axum::async_trait;
 
-use crate::app::Service;
-
 #[async_trait]
-pub trait AuthService: Service {
+pub trait AuthService {
     async fn authenticate(&self, token: &str) -> Result<(), ()>;
 }

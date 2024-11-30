@@ -1,32 +1,19 @@
 use crate::auth::AuthService;
 
-pub trait Service: Clone + Send + Sync + 'static {}
-impl<T: Clone + Sync + Send + 'static> Service for T {}
-
-pub trait Services {
+pub trait App {
     type Auth: AuthService;
 
     fn auth(&self) -> &Self::Auth;
 }
 
-#[derive(Clone)]
-pub struct App<Auth>
+pub struct NewApp<Auth>
 where
     Auth: AuthService,
 {
-    auth: Auth,
+    pub auth: Auth,
 }
 
-impl<Auth> App<Auth>
-where
-    Auth: AuthService,
-{
-    pub fn new(auth: Auth) -> Self {
-        Self { auth }
-    }
-}
-
-impl<Auth> Services for App<Auth>
+impl<Auth> App for NewApp<Auth>
 where
     Auth: AuthService,
 {
