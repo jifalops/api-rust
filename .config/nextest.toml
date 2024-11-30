@@ -1,0 +1,9 @@
+[profile.e2e]
+default-filter = 'kind(test)'
+slow-timeout = { period = "60s" }
+test-threads = 1
+
+[profile.unit]
+default-filter = 'not kind(test)'
+slow-timeout = { period = "20s" }
+fail-fast = false
