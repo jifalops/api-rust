@@ -1,0 +1,11 @@
+# https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package]
+name = "api-rust"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+api-rust-macros = { version = "*", path = "../macros" }
+axum = { version = "0.7.9", features = ["macros"] }
+tokio = { version = "1.41.1", features = ["full"] }

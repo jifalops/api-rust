@@ -1,10 +1,11 @@
 {
-  "name": "Rust Axum",
+  "name": "API-Rust",
   "dockerComposeFile": "./docker-compose.yml",
-  "service": "rust-axum",
+  "service": "api-rust",
   "remoteUser": "developer",
-  "workspaceFolder": "/rust-axum",
+  "workspaceFolder": "/api-rust",
   "postCreateCommand": ".devcontainer/post-create.sh",
+  "postStartCommand": "sudo nohup dockerd &",
   "customizations": {
     "vscode": {
       "settings": {

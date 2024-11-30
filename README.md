@@ -1,4 +1,4 @@
-# Rust Axum
+# API Rust
 
 A template repo for building a Rust/Axum API using a dev-container.
 
