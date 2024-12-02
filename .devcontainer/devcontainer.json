@@ -20,7 +20,8 @@
         "tamasfe.even-better-toml",
         "fill-labs.dependi",
         "EthanSK.restore-terminals",
-        "redhat.vscode-yaml"
+        "redhat.vscode-yaml",
+        "me-dutour-mathieu.vscode-github-actions"
       ]
     }
   }
