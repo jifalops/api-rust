@@ -1,7 +1,13 @@
+# AWS Example SAM Deploy: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/deploying-using-github.html
+# Cargo Lambda example: https://www.cargo-lambda.info/guide/getting-started.html#github-actions
+name: Deploy Lambda
 on:
   push:
     branches:
       - main
+    paths:
+      - '**/src/**'
+      - '**/Cargo.toml'
 jobs:
   sam-deploy:
     runs-on: ubuntu-latest
@@ -12,6 +18,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-unknown-linux-gnu
+      - name: Run tests
+        run: cargo test --release --features lambda
       - name: Install Zig toolchain
         uses: korandoru/setup-zig@v1
         with:
