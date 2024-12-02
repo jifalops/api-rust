@@ -5,7 +5,6 @@ on:
 jobs:
   sam-deploy:
     runs-on: ubuntu-latest
-    # environment: AWS SAM / Lambda
     if: ${{ vars.DEPLOY_LAMBDA == 'true' }}
     steps:
       - uses: actions/checkout@v3
