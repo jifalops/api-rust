@@ -2,6 +2,7 @@
 version = 0.1
 
 [default]
+[default.global]
 [default.global.parameters]
 stack_name = "api-rust"
 
@@ -16,9 +17,6 @@ lint = true
 [default.deploy.parameters]
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
-image_repositories = []
-
-[default.package.parameters]
 resolve_s3 = true
 
 [default.sync.parameters]

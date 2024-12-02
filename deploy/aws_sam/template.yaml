@@ -1,39 +1,24 @@
-AWSTemplateFormatVersion: "2010-09-09"
+# Template sections: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy.html
+# Rust specific: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/building-rust.html
 Transform: AWS::Serverless-2016-10-31
-Description: "Rust API"
 
 Parameters:
-  Stage:
-    Type: String
-    Default: dev
-    AllowedValues:
-      - dev
-      - staging
-      - prod
   Arch:
     Type: String
     Default: arm64
     AllowedValues:
       - arm64
       - x86_64
-
-Globals:
-  Function:
-    Timeout: 10
-    MemorySize: 128
-    Runtime: provided.al2
-    Handler: bootstrap
-    Environment:
-      Variables:
-        RUST_BACKTRACE: 1
-        ENVIRONMENT: !Ref Stage
-        POSTGRES_URI: !Sub "${POSTGRES_URI}"
+  PostgresUri:
+    Type: String
+  RustLog:
+    Type: String
 
 Resources:
+  # https://github.com/aws/serverless-application-model/blob/master/versions/2016-10-31.md#httpapi
   ApiGateway:
     Type: AWS::Serverless::HttpApi
     Properties:
-      StageName: !Ref Stage
       CorsConfiguration:
         AllowMethods:
           - GET
@@ -47,13 +32,31 @@ Resources:
         AllowOrigins:
           - "*"
 
+  # https://github.com/aws/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
   ApiFunction:
     Type: AWS::Serverless::Function
     Metadata:
       BuildMethod: rust-cargolambda
     Properties:
-      CodeUri: ../../lib
+      Timeout: 10
+      MemorySize: 128
+      CodeUri: ../../target/lambda/api-rust
+      Runtime: provided.al2023
+      Handler: bootstrap
+      Architectures:
+        - !Ref Arch
+      Environment:
+        Variables:
+          RUST_BACKTRACE: 1
+          POSTGRES_URI: !Ref PostgresUri
+          RUST_LOG: !Ref RustLog
       Events:
+        RootRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ApiGateway
+            Path: /
+            Method: ANY
         ApiEvent:
           Type: HttpApi
           Properties:
@@ -64,4 +67,4 @@ Resources:
 Outputs:
   ApiEndpoint:
     Description: HTTP API Gateway endpoint URL
-    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/"
+    Value: !Sub https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com

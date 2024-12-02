@@ -5,15 +5,22 @@ use api_rust::{
     auth::{AuthService, AuthServiceJwt},
 };
 use axum::{extract::State, response::Html, routing::get, Json, Router};
-use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use tracing::debug;
 
 #[tokio::main]
 async fn main() {
-    // Initialize tracing / logging from the RUST_LOG env var.
-    tracing_subscriber::registry()
-        .with(fmt::layer())
-        .with(EnvFilter::from_default_env())
-        .init();
+    #[cfg(not(feature = "lambda"))]
+    {
+        use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+        tracing_subscriber::registry()
+            .with(fmt::layer())
+            .with(EnvFilter::from_default_env())
+            .init();
+    }
+    #[cfg(feature = "lambda")]
+    {
+        lambda_http::tracing::init_default_subscriber();
+    }
 
     let app = NewApp {
         auth: AuthServiceJwt,
@@ -24,9 +31,19 @@ async fn main() {
         .route("/auth", get(auth))
         .with_state(Arc::new(app));
 
-    let addr = std::net::SocketAddr::from(([0, 0, 0, 0], 3000));
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, router).await.unwrap();
+    #[cfg(not(feature = "lambda"))]
+    {
+        debug!("DEV MODE");
+        let addr = std::net::SocketAddr::from(([0, 0, 0, 0], 3000));
+        let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+        axum::serve(listener, router).await.unwrap();
+    }
+
+    #[cfg(feature = "lambda")]
+    {
+        debug!("LAMBDA MODE");
+        lambda_http::run(router).await.unwrap();
+    }
 }
 
 async fn handler() -> Html<&'static str> {
@@ -35,7 +52,7 @@ async fn handler() -> Html<&'static str> {
 
 pub async fn auth<A: App>(State(app): State<Arc<A>>) -> Json<&'static str> {
     match app.auth().authenticate("valid").await {
-        Ok(()) => Json("authenticated"),
-        Err(()) => Json("unauthenticated"),
+        Ok(()) => Json("authenticated!"),
+        Err(()) => Json("unauthenticated!"),
     }
 }
