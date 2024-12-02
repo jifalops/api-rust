@@ -52,7 +52,7 @@ async fn handler() -> Html<&'static str> {
 
 pub async fn auth<A: App>(State(app): State<Arc<A>>) -> Json<&'static str> {
     match app.auth().authenticate("valid").await {
-        Ok(()) => Json("authenticated!"),
-        Err(()) => Json("unauthenticated!"),
+        Ok(()) => Json("authenticated"),
+        Err(()) => Json("unauthenticated"),
     }
 }
