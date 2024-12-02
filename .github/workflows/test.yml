@@ -1,0 +1,16 @@
+name: Test
+on:
+  pull_request:
+    branches: main
+    paths:
+      - '**/src/**'
+      - '**/Cargo.toml'
+jobs:
+  cargo-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run tests
+        run: cargo test
