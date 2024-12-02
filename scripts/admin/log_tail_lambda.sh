@@ -8,4 +8,4 @@ set -o allexport
 source "$script_dir/../../.env"
 set +o allexport
 
-aws logs tail "/aws/lambda/$PROD_LAMBDA_LOG_GROUP_NAME" --follow
+aws logs tail "/aws/lambda/$PROD_LAMBDA_LOG_GROUP" --follow

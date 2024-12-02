@@ -1,4 +1,3 @@
-version: "3.8"
 services:
   api-rust:
     build:
@@ -13,17 +12,14 @@ services:
     environment:
       TZ: ${TZ} # Timezone
       GITHUB_TOKEN: ${GITHUB_TOKEN} # Github CLI
-      # Parsed by `tracing_subscriber`.
       # See https://docs.rs/tracing-subscriber/latest/tracing_subscriber/filter/struct.EnvFilter.html#example-syntax
       RUST_LOG: debug
-      POSTGRES_URI: postgresql://developer:developer@postgres:5432/developer
+      POSTGRES_URI: postgresql://postgres:developer@postgres:5432/postgres
 
   postgres:
     image: postgres:13
     environment:
-      POSTGRES_USER: developer
       POSTGRES_PASSWORD: developer
-      POSTGRES_DB: developer
     ports:
       - "5432:5432"
     volumes:
