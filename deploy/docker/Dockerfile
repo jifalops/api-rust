@@ -1,19 +1,16 @@
 # Build
-FROM rust:1.75-slim-bookworm AS builder
+FROM rust:slim-bookworm AS builder
 
 WORKDIR /usr/src/app
 
-COPY ../.. .
+COPY ../../Cargo.toml ../../Cargo.lock ./
+COPY ../../lib ./lib
+COPY ../../macros ./macros
 
 RUN cargo build --release --workspace
 
 # Production
-FROM debian:bookworm-slim
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  ca-certificates \
-  libssl-dev \
-  && rm -rf /var/lib/apt/lists/*
+FROM gcr.io/distroless/cc
 
 WORKDIR /app
 
