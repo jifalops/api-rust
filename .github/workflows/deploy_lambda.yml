@@ -11,7 +11,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-unknown-linux-gnu, x86_64-unknown-linux-gnu
+          targets: aarch64-unknown-linux-gnu
       - name: Install Zig toolchain
         uses: korandoru/setup-zig@v1
         with:
@@ -31,4 +31,4 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
       - run: |
           cd deploy/aws_sam
-          sam deploy --parameter-overrides RustLog="${{ vars.RUST_LOG }}" PostgresUri="${{ secrets.POSTGRES_URI }}"
+          sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --parameter-overrides RustLog="${{ vars.RUST_LOG }}" PostgresUri="${{ secrets.POSTGRES_URI }}"
