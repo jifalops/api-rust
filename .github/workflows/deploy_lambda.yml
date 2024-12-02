@@ -1,0 +1,32 @@
+on:
+  push:
+    branches:
+      - main
+jobs:
+  sam-deploy:
+    runs-on: ubuntu-latest
+    if: secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != ''
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
+      - name: Install Zig toolchain
+        uses: korandoru/setup-zig@v1
+      - name: Install Cargo Lambda
+        uses: jaxxstorm/action-install-gh-release@v1.9.0
+        with:
+          repo: cargo-lambda/cargo-lambda
+          platform: linux
+          arch: x86_64
+      - run: cargo lambda build --release --features lambda --arm64
+      - uses: aws-actions/setup-sam@v2
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+      - run: |
+          cd deploy/aws_sam
+          sam deploy --parameter-overrides RustLog="${{ secrets.RUST_LOG }}" PostgresUri="${{ secrets.POSTGRES_URI }}"
