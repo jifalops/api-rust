@@ -23,6 +23,7 @@ impl<T: UserRepoAdapter> UserRepo<T> {
         let user = User {
             id: self.generate_id(),
             email: data.email,
+            email_verified: false,
             password_hash: data.password_hash,
             name: data.name,
             photo_url: data.photo_url,

@@ -22,16 +22,15 @@ impl<T: UserRepoAdapter> UserService<T> {
     }
 
     pub async fn get_user(&self, ident: UserIdentifier) -> Result<User, AppError> {
-        if let Some(id) = ident.id() {
-            let user = self.repo.get_user_by_id(id).await?;
-            return Ok(user);
+        match ident {
+            UserIdentifier::Id(id) => {
+                let user = self.repo.get_user_by_id(&id).await?;
+                Ok(user)
+            }
+            UserIdentifier::Email(email) => {
+                let user = self.repo.get_user_by_email(&email).await?;
+                Ok(user)
+            }
         }
-        if let Some(email) = ident.email() {
-            let user = self.repo.get_user_by_email(email).await?;
-            return Ok(user);
-        }
-        Err(AppError::Internal(
-            "id or email must be provided".to_owned(),
-        ))
     }
 }
