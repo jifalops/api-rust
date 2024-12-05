@@ -1,25 +1,42 @@
-use crate::auth::AuthService;
+use crate::{
+    auth::AuthService,
+    user::{UserRepoAdapter, UserService},
+};
 
-pub trait App {
+pub trait Service: Sync + Send + 'static {}
+impl<T: Sync + Send + 'static> Service for T {}
+
+pub trait App: Sync + Send + 'static {
     type Auth: AuthService;
+    type UserRepo: UserRepoAdapter;
 
     fn auth(&self) -> &Self::Auth;
+
+    fn user(&self) -> &UserService<Self::UserRepo>;
 }
 
-pub struct NewApp<Auth>
+pub struct NewApp<Auth, UserRepo>
 where
     Auth: AuthService,
+    UserRepo: UserRepoAdapter,
 {
     pub auth: Auth,
+    pub user: UserService<UserRepo>,
 }
 
-impl<Auth> App for NewApp<Auth>
+impl<Auth, UserRepo> App for NewApp<Auth, UserRepo>
 where
     Auth: AuthService,
+    UserRepo: UserRepoAdapter,
 {
     type Auth = Auth;
+    type UserRepo = UserRepo;
 
     fn auth(&self) -> &Self::Auth {
         &self.auth
+    }
+
+    fn user(&self) -> &UserService<Self::UserRepo> {
+        &self.user
     }
 }

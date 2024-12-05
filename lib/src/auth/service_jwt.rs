@@ -1,16 +1,14 @@
-use axum::async_trait;
+use async_trait::async_trait;
 
-use super::AuthService;
+use crate::{user::User, AppError};
+
+use super::{AuthService, Token};
 
 pub struct AuthServiceJwt;
 
 #[async_trait]
 impl AuthService for AuthServiceJwt {
-    async fn authenticate(&self, token: &str) -> Result<(), ()> {
-        if token == "valid" {
-            Ok(())
-        } else {
-            Err(())
-        }
+    async fn generate_token(&self, user: User) -> Result<Token, AppError> {
+        todo!()
     }
 }
