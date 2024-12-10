@@ -4,11 +4,13 @@ use axum::{
     response::IntoResponse,
     Json,
 };
+use schemars::JsonSchema;
+use serde::Serialize;
 use serde_json::json;
 
 use crate::auth::AuthError;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, Serialize, JsonSchema)]
 pub enum AppError {
     #[error("Authentication failed: {0}")]
     Auth(#[from] AuthError),
@@ -24,9 +26,6 @@ pub enum AppError {
 
     #[error("Internal error: {0}")]
     Internal(String),
-
-    #[error("Internal error: {0}")]
-    MalformedData(#[from] serde_json::Error),
 }
 
 impl IntoResponse for AppError {

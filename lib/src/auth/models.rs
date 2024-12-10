@@ -1,3 +1,4 @@
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -14,7 +15,7 @@ pub struct Token {
     pub expires: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Validate, JsonSchema)]
 pub struct SignUpData {
     #[validate(email)]
     pub email: String,
@@ -26,7 +27,7 @@ pub struct SignUpData {
     pub photo_url: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Validate, JsonSchema)]
 pub struct SignInData {
     #[validate(email)]
     pub email: String,

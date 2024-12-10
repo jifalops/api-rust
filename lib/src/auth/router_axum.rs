@@ -1,15 +1,16 @@
 use std::sync::Arc;
 
-use axum::{extract::State, routing::post, Json, Router};
+use aide::axum::{routing::post, ApiRouter};
+use axum::extract::State;
 
-use crate::{app::App, AppError};
+use crate::{app::App, extractors::Json, AppError};
 
 use super::{router, SignInData, SignUpData, Token};
 
-pub fn create_router<A: App>() -> Router<Arc<A>> {
-    Router::new()
-        .route("/sign-up", post(sign_up))
-        .route("/sign-in", post(sign_in))
+pub fn create_router<A: App>() -> ApiRouter<Arc<A>> {
+    ApiRouter::new()
+        .api_route("/sign-up", post(sign_up))
+        .api_route("/sign-in", post(sign_in))
 }
 
 async fn sign_up<A: App>(

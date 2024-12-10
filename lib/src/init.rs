@@ -1,6 +1,10 @@
 use std::sync::Arc;
 
-use axum::{response::Html, routing::get, Router};
+use aide::{
+    axum::{routing::get, ApiRouter},
+    openapi::OpenApi,
+};
+use axum::{handler::HandlerWithoutStateExt, response::Html, Extension};
 use tracing::debug;
 
 use crate::{
@@ -17,10 +21,15 @@ pub async fn initialize() {
         user: UserService::new(UserRepoPostgres),
     };
 
-    let router = Router::new()
-        .route("/", get(hello_world))
-        .nest("/auth", auth::router_axum::create_router())
-        .with_state(Arc::new(app));
+    let mut api = OpenApi::default();
+
+    let router = ApiRouter::new()
+        .api_route("/", get(hello_world))
+        .nest_api_service("/auth", auth::router_axum::create_router())
+        .with_state(Arc::new(app))
+        .finish_api(&mut api)
+        .layer(Extension(api))
+        .into_make_service();
 
     start_api_server(router).await;
 }

@@ -1,3 +1,5 @@
+use schemars::JsonSchema;
+
 use crate::{
     auth::AuthService,
     user::{UserRepoAdapter, UserService},
@@ -15,6 +17,7 @@ pub trait App: Sync + Send + 'static {
     fn user(&self) -> &UserService<Self::UserRepo>;
 }
 
+#[derive(JsonSchema)]
 pub struct NewApp<Auth, UserRepo>
 where
     Auth: AuthService,

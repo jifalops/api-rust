@@ -1,10 +1,12 @@
 use axum::async_trait;
+use schemars::JsonSchema;
 use serde_json::Value;
 
 use crate::AppError;
 
 use super::repo::UserRepoAdapter;
 
+#[derive(JsonSchema)]
 pub struct UserRepoPostgres;
 
 #[async_trait]
