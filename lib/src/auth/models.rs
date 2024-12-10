@@ -1,3 +1,4 @@
+use oasgen::OaSchema;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -7,14 +8,14 @@ pub enum AuthError {
     InvalidCredential,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, OaSchema)]
 pub struct Token {
     pub user_id: String,
     pub token: String,
     pub expires: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Validate, OaSchema)]
 pub struct SignUpData {
     #[validate(email)]
     pub email: String,
@@ -26,7 +27,7 @@ pub struct SignUpData {
     pub photo_url: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Validate, OaSchema)]
 pub struct SignInData {
     #[validate(email)]
     pub email: String,

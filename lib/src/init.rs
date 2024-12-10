@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use axum::{response::Html, routing::get, Router};
+use axum::{routing::get, Json, Router};
+use oasgen::oasgen;
+use serde_json::{json, Value};
 use tracing::debug;
 
 use crate::{
@@ -16,6 +18,11 @@ pub async fn initialize() {
         auth: AuthServiceJwt,
         user: UserService::new(UserRepoPostgres),
     };
+
+    let server = oasgen::Server::axum()
+        // TODO(multiple routers): https://github.com/kurtbuilds/oasgen/issues/20
+        .route_json_spec("/openapi.json")
+        .swagger_ui("/docs/");
 
     let router = Router::new()
         .route("/", get(hello_world))
@@ -56,6 +63,7 @@ async fn start_api_server(router: Router) {
     }
 }
 
-async fn hello_world() -> Html<&'static str> {
-    Html("<h1>Hello, World!</h1>")
+#[oasgen]
+async fn hello_world() -> Json<Value> {
+    Json(json!({"message": "Hello, World!"}))
 }
