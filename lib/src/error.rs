@@ -16,8 +16,8 @@ pub enum AppError {
     #[error("Database error: {0}")]
     Database(#[from] sqlx::Error),
 
-    #[error("Not found: {0}")]
-    NotFound(String),
+    #[error("Not found")]
+    NotFound,
 
     #[error("Validation failed: {0}")]
     Validation(String),
@@ -37,7 +37,7 @@ impl IntoResponse for AppError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Internal server error".to_string(),
             ),
-            AppError::NotFound(msg) => (StatusCode::NOT_FOUND, msg),
+            AppError::NotFound => (StatusCode::NOT_FOUND, self.to_string()),
             AppError::Validation(msg) => (StatusCode::BAD_REQUEST, msg),
             AppError::Internal(_) => (
                 StatusCode::INTERNAL_SERVER_ERROR,

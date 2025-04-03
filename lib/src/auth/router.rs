@@ -1,17 +1,29 @@
-use validator::Validate;
+use std::sync::Arc;
 
-use crate::{App, AppError};
+use axum::{extract::State, routing::post, Json, Router};
 
-use super::{AuthService, SignInData, SignUpData, Token};
+use crate::{app::App, AppError};
 
-pub async fn sign_up<A: App>(data: SignUpData, app: &A) -> Result<Token, AppError> {
-    data.validate()
-        .map_err(|e| AppError::Validation(e.to_string()))?;
-    app.auth().sign_up(data, app).await
+use super::{SignInData, SignUpData, Token};
+
+pub fn create_router<A: App>() -> Router<Arc<A>> {
+    Router::new()
+        .route("/sign-up", post(sign_up))
+        .route("/sign-in", post(sign_in))
 }
 
-pub async fn sign_in<A: App>(data: SignInData, app: &A) -> Result<Token, AppError> {
-    data.validate()
-        .map_err(|e| AppError::Validation(e.to_string()))?;
-    app.auth().sign_in(data, app).await
+async fn sign_up<A: App>(
+    State(app): State<Arc<A>>,
+    Json(data): Json<SignUpData>,
+) -> Result<Json<Token>, AppError> {
+    let token = app.auth().sign_up(data, app.as_ref()).await?;
+    Ok(Json(token))
+}
+
+async fn sign_in<A: App>(
+    State(app): State<Arc<A>>,
+    Json(data): Json<SignInData>,
+) -> Result<Json<Token>, AppError> {
+    let token = app.auth().sign_in(data, app.as_ref()).await?;
+    Ok(Json(token))
 }

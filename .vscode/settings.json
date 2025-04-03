@@ -1,6 +1,10 @@
 {
   // Avoids popup when opening a file that's not linked back to lib.rs
   "rust-analyzer.showUnlinkedFileNotification": false,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
   "restoreTerminals.terminals": [
     {
       "splitTerminals": [

@@ -5,7 +5,7 @@ use tracing::debug;
 
 use crate::{
     app::NewApp,
-    auth::{self, AuthServiceJwt},
+    auth::{self, AuthRepoJwt, AuthService},
     user::{UserRepoPostgres, UserService},
 };
 
@@ -13,13 +13,13 @@ pub async fn initialize() {
     setup_tracing();
 
     let app = NewApp {
-        auth: AuthServiceJwt,
+        auth: AuthService::new(AuthRepoJwt),
         user: UserService::new(UserRepoPostgres),
     };
 
     let router = Router::new()
         .route("/", get(hello_world))
-        .nest("/auth", auth::router_axum::create_router())
+        .nest("/auth", auth::create_router())
         .with_state(Arc::new(app));
 
     start_api_server(router).await;

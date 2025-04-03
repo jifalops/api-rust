@@ -2,19 +2,29 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
-use async_trait::async_trait;
+use validator::Validate;
 
 use crate::{
-    app::Service,
-    user::{NewUser, User, UserIdentifier},
+    user::{NewUser, UserIdentifier},
     App, AppError,
 };
 
-use super::{AuthError, SignInData, SignUpData, Token};
+use super::{AuthError, AuthRepo, SignInData, SignUpData, Token};
 
-#[async_trait]
-pub trait AuthService: Service {
-    async fn sign_up<A: App>(&self, data: SignUpData, app: &A) -> Result<Token, AppError> {
+pub struct AuthService<R: AuthRepo> {
+    repo: R,
+}
+
+impl<R: AuthRepo> AuthService<R> {
+    pub fn new(repo: R) -> Self {
+        Self { repo }
+    }
+}
+
+impl<R: AuthRepo> AuthService<R> {
+    pub async fn sign_up<A: App>(&self, data: SignUpData, app: &A) -> Result<Token, AppError> {
+        data.validate()
+            .map_err(|e| AppError::Validation(e.to_string()))?;
         let new_user = NewUser {
             email: data.email,
             password_hash: self.hash_password(data.password)?,
@@ -22,17 +32,19 @@ pub trait AuthService: Service {
             photo_url: data.photo_url,
         };
         let user = app.user().create_user(new_user).await?;
-        let token = self.generate_token(user).await?;
+        let token = self.repo.create_token(&user).await?;
         Ok(token)
     }
 
-    async fn sign_in<A: App>(&self, data: SignInData, app: &A) -> Result<Token, AppError> {
+    pub async fn sign_in<A: App>(&self, data: SignInData, app: &A) -> Result<Token, AppError> {
+        data.validate()
+            .map_err(|e| AppError::Validation(e.to_string()))?;
         let user = app
             .user()
             .get_user(UserIdentifier::Email(data.email))
             .await?;
         self.verify_password(data.password, &user.password_hash)?;
-        self.generate_token(user).await
+        self.repo.create_token(&user).await
     }
 
     fn hash_password(&self, password: String) -> Result<String, AppError> {
@@ -49,6 +61,4 @@ pub trait AuthService: Service {
             .verify_password(password.as_bytes(), &parsed)
             .map_err(|_| AuthError::InvalidCredential.into())
     }
-
-    async fn generate_token(&self, user: User) -> Result<Token, AppError>;
 }
