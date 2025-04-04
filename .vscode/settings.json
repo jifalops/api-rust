@@ -3,8 +3,13 @@
   "rust-analyzer.showUnlinkedFileNotification": false,
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.organizeImports": "explicit"
+    "source.fixAll": "explicit",
+    "source.unusedImports": "explicit",
+    "source.organizeImports": "explicit",
+    "source.convertImportFormat": "explicit",
   },
+  "github.copilot.chat.copilotDebugCommand.enabled": false,
+  "git.terminalAuthentication": false,
   "restoreTerminals.terminals": [
     {
       "splitTerminals": [

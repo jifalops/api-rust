@@ -1,8 +1,8 @@
 use axum::{
+    Json,
     body::Body,
     http::{Response, StatusCode},
     response::IntoResponse,
-    Json,
 };
 use serde_json::json;
 

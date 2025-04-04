@@ -1,34 +1,47 @@
 use std::sync::Arc;
 
-use axum::{response::Html, routing::get, Router};
-use tracing::debug;
+use poem::{Route, listener::TcpListener};
+use poem_openapi::OpenApiService;
 
 use crate::{
     app::NewApp,
-    auth::{self, AuthRepoJwt, AuthService},
+    auth::{AuthRepoJwt, AuthRouter, AuthService},
     user::{UserRepoPostgres, UserService},
 };
 
 pub async fn initialize() {
     setup_tracing();
 
-    let app = NewApp {
+    let app = Arc::new(NewApp {
         auth: AuthService::new(AuthRepoJwt),
         user: UserService::new(UserRepoPostgres),
-    };
+    });
 
-    let router = Router::new()
-        .route("/", get(hello_world))
-        .nest("/auth", auth::create_router())
-        .with_state(Arc::new(app));
+    let routers = AuthRouter { app: app.clone() };
+    let api = OpenApiService::new(routers, "API", "1.0");
+    let ui = api.stoplight_elements();
+    let spec = api.spec_endpoint();
+    let routes = Route::new()
+        .nest("/", ui)
+        .nest("/api", api)
+        .nest("/spec", spec);
 
-    start_api_server(router).await;
+    #[cfg(not(feature = "lambda"))]
+    {
+        let _ = poem::Server::new(TcpListener::bind("0.0.0.0:3000"))
+            .run(routes)
+            .await;
+    }
+    #[cfg(feature = "lambda")]
+    {
+        let _ = poem_lambda::run(routes);
+    }
 }
 
 fn setup_tracing() {
     #[cfg(not(feature = "lambda"))]
     {
-        use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+        use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
         tracing_subscriber::registry()
             .with(fmt::layer())
             .with(EnvFilter::from_default_env())
@@ -38,24 +51,4 @@ fn setup_tracing() {
     {
         lambda_http::tracing::init_default_subscriber();
     }
-}
-
-async fn start_api_server(router: Router) {
-    #[cfg(not(feature = "lambda"))]
-    {
-        debug!("DEV MODE");
-        let addr = std::net::SocketAddr::from(([0, 0, 0, 0], 3000));
-        let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-        axum::serve(listener, router).await.unwrap();
-    }
-
-    #[cfg(feature = "lambda")]
-    {
-        debug!("LAMBDA MODE");
-        lambda_http::run(router).await.unwrap();
-    }
-}
-
-async fn hello_world() -> Html<&'static str> {
-    Html("<h1>Hello, World!</h1>")
 }

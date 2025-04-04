@@ -3,7 +3,7 @@
 [package]
 name = "api-rust"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [features]
 default = []
@@ -17,6 +17,9 @@ async-trait = "0.1.83"
 axum = { version = "0.8.1", features = ["macros"] }
 dashmap = "6.1.0"
 lambda_http = { version = "0.14.0", optional = true, features = ["apigw_http"] }
+poem = "3.1.6"
+poem-lambda = "5.1.2"
+poem-openapi = { version = "5.1.12", features = ["stoplight-elements"] }
 serde = { version = "1.0.215", features = ["derive"] }
 serde_json = "1.0.133"
 short-uuid = "0.2.0"

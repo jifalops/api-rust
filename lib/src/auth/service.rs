@@ -1,12 +1,12 @@
 use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
 use validator::Validate;
 
 use crate::{
-    user::{NewUser, UserIdentifier},
     App, AppError,
+    user::{NewUser, UserIdentifier, UserRepo},
 };
 
 use super::{AuthError, AuthRepo, SignInData, SignUpData, Token};
@@ -19,9 +19,6 @@ impl<R: AuthRepo> AuthService<R> {
     pub fn new(repo: R) -> Self {
         Self { repo }
     }
-}
-
-impl<R: AuthRepo> AuthService<R> {
     pub async fn sign_up<A: App>(&self, data: SignUpData, app: &A) -> Result<Token, AppError> {
         data.validate()
             .map_err(|e| AppError::Validation(e.to_string()))?;

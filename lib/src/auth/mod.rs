@@ -7,5 +7,5 @@ mod service;
 pub use models::*;
 pub use repo::AuthRepo;
 pub use repo_jwt::AuthRepoJwt;
-pub use router::create_router;
+pub use router::AuthRouter;
 pub use service::*;

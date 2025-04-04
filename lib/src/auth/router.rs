@@ -1,29 +1,52 @@
 use std::sync::Arc;
 
-use axum::{extract::State, routing::post, Json, Router};
+use poem_openapi::{ApiResponse, OpenApi, payload::Json};
 
-use crate::{app::App, AppError};
+use crate::{api::ApiTags, app::App};
 
 use super::{SignInData, SignUpData, Token};
 
-pub fn create_router<A: App>() -> Router<Arc<A>> {
-    Router::new()
-        .route("/sign-up", post(sign_up))
-        .route("/sign-in", post(sign_in))
+pub struct AuthRouter<A: App> {
+    pub app: Arc<A>,
 }
 
-async fn sign_up<A: App>(
-    State(app): State<Arc<A>>,
-    Json(data): Json<SignUpData>,
-) -> Result<Json<Token>, AppError> {
-    let token = app.auth().sign_up(data, app.as_ref()).await?;
-    Ok(Json(token))
+#[derive(ApiResponse)]
+enum AuthResponse {
+    #[oai(status = 200)]
+    Success(Json<Token>),
+    #[oai(status = 401)]
+    Unauthorized(Json<String>),
 }
 
-async fn sign_in<A: App>(
-    State(app): State<Arc<A>>,
-    Json(data): Json<SignInData>,
-) -> Result<Json<Token>, AppError> {
-    let token = app.auth().sign_in(data, app.as_ref()).await?;
-    Ok(Json(token))
+#[OpenApi(tag = "ApiTags::Auth", prefix_path = "/auth")]
+impl<A: App> AuthRouter<A> {
+    /// Sign up / Register
+    #[oai(path = "/sign_up", method = "post")]
+    async fn sign_up(&self, Json(data): Json<SignUpData>) -> AuthResponse {
+        match self.app.auth().sign_up(data, self.app.as_ref()).await {
+            Ok(token) => {
+                tracing::info!("User signed up successfully: {:?}", token);
+                AuthResponse::Success(Json(token))
+            }
+            Err(e) => {
+                tracing::error!("Sign up error: {:?}", e);
+                AuthResponse::Unauthorized(Json(e.to_string()))
+            }
+        }
+    }
+
+    /// Sign in / Login
+    #[oai(path = "/sign_in", method = "post")]
+    async fn sign_in(&self, Json(data): Json<SignInData>) -> AuthResponse {
+        match self.app.auth().sign_in(data, self.app.as_ref()).await {
+            Ok(token) => {
+                tracing::info!("User signed in successfully: {:?}", token);
+                AuthResponse::Success(Json(token))
+            }
+            Err(e) => {
+                tracing::error!("Sign in error: {:?}", e);
+                AuthResponse::Unauthorized(Json(e.to_string()))
+            }
+        }
+    }
 }
