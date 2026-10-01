@@ -1,8 +1,12 @@
-use crate::{app::Repo, user::User, AppError};
+use crate::{AppResult, user::User};
 
-use super::Token;
+use super::{Token, TokenUser};
 
 #[async_trait::async_trait]
-pub trait AuthRepo: Repo {
-    async fn create_token(&self, user: &User) -> Result<Token, AppError>;
+pub trait AuthRepo: Send + Sync + 'static {
+    /// Issues a signed token for a user.
+    async fn create_token(&self, user: &User) -> AppResult<Token>;
+
+    /// Verifies a token's signature and expiry, returning its claims.
+    fn verify(&self, token: &Token) -> AppResult<TokenUser>;
 }

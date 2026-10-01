@@ -5,30 +5,54 @@ name = "api-rust"
 version = "0.1.0"
 edition = "2024"
 
+# https://www.cargo-lambda.info/commands/deploy.html
+[package.metadata.lambda.deploy]
+memory = 128
+timeout = 10
+
+[[bin]]
+name = "api-rust"
+path = "src/main.rs"
+
 [features]
 default = []
-lambda = ["dep:lambda_http"]
+lambda = ["dep:lambda_http", "dep:poem-lambda"]
 testing = []
 
 [dependencies]
-api-rust-macros = { version = "*", path = "../macros" }
 argon2 = "0.5.3"
 async-trait = "0.1.83"
-axum = { version = "0.8.1", features = ["macros"] }
-dashmap = "6.1.0"
+jsonwebtoken = "9.3.1"
 lambda_http = { version = "0.14.0", optional = true, features = ["apigw_http"] }
 poem = "3.1.6"
-poem-lambda = "5.1.2"
-poem-openapi = { version = "5.1.12", features = ["stoplight-elements"] }
+poem-lambda = { version = "5.1.2", optional = true }
+poem-openapi = { version = "5.1.12", features = ["stoplight-elements", "time"] }
 serde = { version = "1.0.215", features = ["derive"] }
 serde_json = "1.0.133"
-short-uuid = "0.2.0"
-sqlx = { version = "0.8.2", features = ["postgres"] }
+sqlx = { version = "0.8.2", features = [
+    "derive",
+    "migrate",
+    "postgres",
+    "runtime-tokio",
+    "time",
+    "tls-rustls-ring-native-roots",
+] }
 thiserror = "2.0.4"
+time = { version = "0.3.41", features = [
+    "formatting",
+    "macros",
+    "parsing",
+    "serde",
+] }
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+uuid = { version = "1.17.0", features = ["serde", "v4"] }
 validator = { version = "0.20.0", features = ["derive"] }
 
-# https://www.cargo-lambda.info/commands/build.html#build-configuration-in-cargo-s-metadata
-# [package.metadata.lambda.build]
+[dev-dependencies]
+poem = { version = "3.1.6", features = ["test"] }
+
+[[test]]
+name = "user"
+required-features = ["testing"]

@@ -1,11 +1,13 @@
+mod adapters;
+mod errors;
 mod models;
 mod repo;
-mod repo_in_memory;
-mod repo_postgres;
 mod service;
 
+pub use adapters::*;
+pub use errors::*;
 pub use models::*;
 pub use repo::UserRepo;
-pub use repo_in_memory::UserRepoInMemory;
-pub use repo_postgres::UserRepoPostgres;
+#[cfg(any(test, feature = "testing"))]
+pub use repo::testing;
 pub use service::*;

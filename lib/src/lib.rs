@@ -1,9 +1,13 @@
 pub mod api;
-pub mod app;
+mod app;
 pub mod auth;
+pub mod config;
+pub mod database;
 mod error;
+pub mod error_reporting;
 pub mod init;
+pub mod postgres;
 pub mod user;
 
-pub use app::App;
-pub use error::AppError;
+pub use app::*;
+pub use error::*;

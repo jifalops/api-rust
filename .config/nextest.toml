@@ -5,5 +5,5 @@ test-threads = 1
 
 [profile.unit]
 default-filter = 'not kind(test)'
-slow-timeout = { period = "20s" }
+slow-timeout = { period = "5s" }
 fail-fast = false

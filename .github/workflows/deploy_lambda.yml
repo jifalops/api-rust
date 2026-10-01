@@ -1,42 +1,47 @@
-# AWS Example SAM Deploy: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/deploying-using-github.html
-# Cargo Lambda example: https://www.cargo-lambda.info/guide/getting-started.html#github-actions
+# Cargo Lambda in CI: https://www.cargo-lambda.info/guide/getting-started.html
 name: Deploy Lambda
 on:
   push:
     branches:
       - main
     paths:
-      - '**/src/**'
-      - '**/Cargo.toml'
+      - "**/src/**"
+      - "**/Cargo.toml"
+      - "Cargo.lock"
+      - "lib/migrations/**"
+      - "lib/.sqlx/**"
 jobs:
-  sam-deploy:
+  deploy:
     runs-on: ubuntu-latest
     if: ${{ vars.DEPLOY_LAMBDA == 'true' }}
+    env:
+      # Build the sqlx query macros from the committed lib/.sqlx cache; there is
+      # no database in this job.
+      SQLX_OFFLINE: "true"
+      RUST_LOG: ${{ vars.RUST_LOG }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: mlugg/setup-zig@v1
         with:
-          targets: aarch64-unknown-linux-gnu
-      - name: Run tests
-        run: cargo test --release --features lambda
-      - name: Install Zig toolchain
-        uses: korandoru/setup-zig@v1
+          version: 0.14.0
+      - uses: taiki-e/install-action@v2
         with:
-          zig-version: 0.13.0
-      - name: Install Cargo Lambda
-        uses: jaxxstorm/action-install-gh-release@v1.9.0
-        with:
-          repo: cargo-lambda/cargo-lambda
-          platform: linux
-          arch: x86_64
-      - run: cargo lambda build --release --features lambda --arm64
-      - uses: aws-actions/setup-sam@v2
-      - uses: aws-actions/configure-aws-credentials@v1
+          tool: cargo-lambda
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
-      - run: |
-          cd deploy/aws_sam
-          sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --parameter-overrides RustLog="${{ vars.RUST_LOG }}" PostgresUri="${{ secrets.POSTGRES_URI }}"
+      # Cross-compile for arm64 and deploy behind a public function URL, passing
+      # the job's env through to the function.
+      - run: cargo lambda build --release --features lambda --arm64
+      - run: >-
+          cargo lambda deploy --enable-function-url
+          --env-var RUST_LOG="${RUST_LOG:-info}"
+          --env-var DATABASE_URL="$DATABASE_URL"
+          --env-var JWT_SECRET="$JWT_SECRET"
+          api-rust
