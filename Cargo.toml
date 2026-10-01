@@ -1,4 +1,12 @@
 [workspace]
 resolver = "2"
 
-members = ["lib", "macros"]
+members = ["lib"]
+
+# Compile-time query checking runs inside sqlx-macros, and argon2 hashing runs in
+# every auth test; both are much faster optimized, even in dev builds.
+[profile.dev.package.sqlx-macros]
+opt-level = 3
+
+[profile.dev.package.argon2]
+opt-level = 3

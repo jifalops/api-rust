@@ -1,45 +1,25 @@
-use crate::{
-    auth::{AuthRepo, AuthService},
-    user::{UserRepo, UserService},
-};
+use std::sync::Arc;
 
-pub trait Service: Sync + Send + 'static {}
-impl<T: Sync + Send + 'static> Service for T {}
+use crate::{auth::AuthService, user::UserService};
 
-pub trait Repo: Sync + Send + 'static {}
-impl<T: Sync + Send + 'static> Repo for T {}
-
-pub trait App: Sync + Send + 'static {
-    type Auth: AuthRepo;
-    type User: UserRepo;
-
-    fn auth(&self) -> &AuthService<Self::Auth>;
-
-    fn user(&self) -> &UserService<Self::User>;
+/// The composed application: one service per domain, already wired to its
+/// adapters. Services are concrete rather than generic over their repository —
+/// adapter choice happens once, in [`crate::init`], behind `Box<dyn ...Repo>`.
+pub struct App {
+    auth: Arc<AuthService>,
+    user: Arc<UserService>,
 }
 
-pub struct NewApp<Auth, User>
-where
-    Auth: AuthRepo,
-    User: UserRepo,
-{
-    pub auth: AuthService<Auth>,
-    pub user: UserService<User>,
-}
+impl App {
+    pub fn new(auth: Arc<AuthService>, user: Arc<UserService>) -> Self {
+        Self { auth, user }
+    }
 
-impl<Auth, User> App for NewApp<Auth, User>
-where
-    Auth: AuthRepo,
-    User: UserRepo,
-{
-    type Auth = Auth;
-    type User = User;
-
-    fn auth(&self) -> &AuthService<Self::Auth> {
+    pub fn auth(&self) -> &Arc<AuthService> {
         &self.auth
     }
 
-    fn user(&self) -> &UserService<Self::User> {
+    pub fn user(&self) -> &Arc<UserService> {
         &self.user
     }
 }

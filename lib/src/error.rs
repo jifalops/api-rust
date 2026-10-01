@@ -1,59 +1,79 @@
-use axum::{
-    Json,
-    body::Body,
-    http::{Response, StatusCode},
-    response::IntoResponse,
+use poem::error::ResponseError;
+use poem::http::StatusCode;
+use poem_openapi::{
+    ApiResponse,
+    registry::{MetaResponses, Registry},
 };
-use serde_json::json;
 
-use crate::auth::AuthError;
+use crate::{auth::AuthError, user::UserError};
 
-#[derive(Debug, thiserror::Error)]
-pub enum AppError {
-    #[error("Authentication failed: {0}")]
-    Auth(#[from] AuthError),
+pub type AppResult<T> = std::result::Result<T, AppError>;
+pub type InfraResult<T> = std::result::Result<T, InfraError>;
 
-    #[error("Database error: {0}")]
-    Database(#[from] sqlx::Error),
+/// Failures in the infrastructure layer, which belong to no business domain.
+#[derive(Debug, thiserror::Error, Clone)]
+pub enum InfraError {
+    #[error("Invalid configuration: {0}")]
+    Config(String),
 
-    #[error("Not found")]
-    NotFound,
+    #[error("Postgres error: {0}")]
+    Postgres(String),
 
-    #[error("Validation failed: {0}")]
-    Validation(String),
+    #[error("IO error: {0}")]
+    Io(String),
 
-    #[error("Internal error: {0}")]
-    Internal(String),
-
-    #[error("Internal error: {0}")]
-    MalformedData(#[from] serde_json::Error),
+    #[error("Network error: {0}")]
+    Network(String),
 }
 
-impl IntoResponse for AppError {
-    fn into_response(self) -> Response<Body> {
-        let (status, error_message) = match self {
-            AppError::Auth(_) => (StatusCode::UNAUTHORIZED, self.to_string()),
-            AppError::Database(_) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Internal server error".to_string(),
-            ),
-            AppError::NotFound => (StatusCode::NOT_FOUND, self.to_string()),
-            AppError::Validation(msg) => (StatusCode::BAD_REQUEST, msg),
-            AppError::Internal(_) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Internal server error".to_string(),
-            ),
-            AppError::MalformedData(_) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Internal server error: Malformed data.".to_string(),
-            ),
-        };
+impl ResponseError for InfraError {
+    fn status(&self) -> StatusCode {
+        match self {
+            InfraError::Config(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            InfraError::Postgres(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            InfraError::Io(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            InfraError::Network(_) => StatusCode::SERVICE_UNAVAILABLE,
+        }
+    }
+}
 
-        let body = Json(json!({
-            "error": error_message,
-            "code": status.as_u16()
-        }));
+/// Aggregates every domain's error type. Add one transparent variant per module
+/// so handlers can return `AppResult<T>` and use `?` on any domain error.
+#[derive(Debug, thiserror::Error, Clone)]
+pub enum AppError {
+    #[error(transparent)]
+    Auth(#[from] AuthError),
 
-        (status, body).into_response()
+    #[error(transparent)]
+    User(#[from] UserError),
+
+    #[error(transparent)]
+    Infra(#[from] InfraError),
+}
+
+impl ResponseError for AppError {
+    fn status(&self) -> StatusCode {
+        match self {
+            AppError::Auth(err) => err.status(),
+            AppError::User(err) => err.status(),
+            AppError::Infra(err) => err.status(),
+        }
+    }
+}
+
+// Prevents OpenAPI docs from including every error possibility in the response codes.
+impl ApiResponse for AppError {
+    fn meta() -> MetaResponses {
+        MetaResponses {
+            responses: Vec::with_capacity(0),
+        }
+    }
+
+    fn register(_: &mut Registry) {}
+}
+
+impl From<sqlx::Error> for InfraError {
+    fn from(err: sqlx::Error) -> Self {
+        InfraError::Postgres(err.to_string())
     }
 }

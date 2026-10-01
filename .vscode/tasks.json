@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "dev",
+      "type": "shell",
+      "command": "just dev",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "group": "dev" },
+      "runOptions": { "runOn": "folderOpen" }
+    },
+    // Release builds, slow to start; run on demand via "Tasks: Run Task".
+    {
+      "label": "docker",
+      "type": "shell",
+      "command": "just docker",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "group": "dev" }
+    },
+    {
+      "label": "lambda",
+      "type": "shell",
+      "command": "just lambda",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "group": "dev" }
+    }
+  ]
+}

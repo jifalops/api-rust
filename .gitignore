@@ -1,7 +1,4 @@
 target/
-.aws-sam/
 .env
 .env.*
 !.env.example
-.bash_history
-.Trash-*

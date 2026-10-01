@@ -1,0 +1,8 @@
+# Railway deploys the same distroless image as `just docker`.
+[build]
+builder = "dockerfile"
+dockerfilePath = "deploy/docker/Dockerfile"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 10
